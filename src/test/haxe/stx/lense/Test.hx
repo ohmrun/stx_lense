@@ -50,15 +50,29 @@ class LenseTest extends TestCase{
   //     }
   //   }
   // }
-  function test_xfork(){
+  // function test_xfork(){
+  //   final data = pI("{ :a 1 :c 1 }").flat_map(x -> switch(x){ case PGroup(Cons(x,_)) : Some(x); default : None; }).defv(PEmpty);
+  //   final req  = _.Rename(Coord.make('a'),Coord.make('b'));
+  //   final res   = ctr.get(req,data);
+  //   for(x in res){
+  //     trace((x:PExpr<Atom>).toString());
+  //   }
+  //   // final hoist = _.Hoist(Coord.make('a'));
+  //   // final res   = ctr.get(hoist,data);
+  //   // trace(res);
+  // }
+  function test_map(){
     final data = pI("{ :a 1 :c 1 }").flat_map(x -> switch(x){ case PGroup(Cons(x,_)) : Some(x); default : None; }).defv(PEmpty);
-    final req  = _.Rename(Coord.make('a'),Coord.make('b'));
+    final req  = 
+    _.Rename(Coord.make('a'),Coord.make('b')).seq(_.Map(_.Constant(PValue(N(KLInt(3)))))).seq(
+      _.Prune([Coord.make('c')])
+    ).seq(
+      _.Focus(Coord.make("b"))
+    );
+    $type(req);
     final res   = ctr.get(req,data);
     for(x in res){
-      trace(__.show(res));
+      trace(x.toString());
     }
-    // final hoist = _.Hoist(Coord.make('a'));
-    // final res   = ctr.get(hoist,data);
-    // trace(res);
   }
 }

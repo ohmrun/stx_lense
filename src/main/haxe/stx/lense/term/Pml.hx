@@ -148,7 +148,7 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
                   (next:Tup2<Coord,PExpr<V>>,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
                     return next.fst().field.fold(
                       fld -> c.access(next.fst()).fold(
-                        ok -> __.accept(tuple2(PLabel(fld),ok)),
+                        ok -> __.accept(tuple2(PLabel(fld),next.snd())),
                         () -> __.reject(f->f.of(E_Lense('no value at ${next.fst()}')))
                       ).map(memo.snoc),
                       () -> __.reject(f->f.of(E_Lense('no value at ${next.fst()}')))
@@ -205,10 +205,16 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
               function(x:PExpr<V>){
                 final not_in_c        = c.refine(
                   (key,val) -> switch(key){
-                    case Left(x)  : pc.all(z -> z != x);
+                    case Left(x)  : (!pc.any(
+                      z -> {
+                        trace('$z $x ${z.equals_loose(x)}');
+                        return z.equals_loose(x);
+                      }
+                    ));
                     default       : false;
                   }
                 );
+                trace(__.show(not_in_c));
                 return get(rhs,not_in_c).map(__.couple.bind(x));
               }  
             ).flat_map(
@@ -220,6 +226,8 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
                     case [PArray(arrayI),PArray(arrayII)] : __.accept(PArray(arrayI.concat(arrayII)));
                     case [PAssoc(mapI),PAssoc(mapII)]     : __.accept(PAssoc(mapI.concat(mapII)));
                     case [PSet(setI),PSet(setII)]         : __.accept(PSet(setI.concat(setII)));
+                    case [null,x]                         : __.accept(x);
+                    case [x,null]                         : __.accept(x);
                     default                               : __.reject(__.fault().of(E_Lense('can\'t merge $l and $r')));
                   }
                 }
@@ -227,34 +235,46 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
           }
         );
       case LsMap(p) :
+        trace('map');
         Upshot.bind_fold(
           c.index(),
           (next:Coord,memo:Cluster<Tup2<Coord,PExpr<V>>>) -> {
             return access(next,c).resolve(f -> f.of(E_Lense('no $next at $c'))).flat_map(
-              ok -> get(p,ok).map(tuple2.bind(next)).map(memo.snoc)
+              ok -> {
+                trace(ok);
+                trace('$next $p');
+                return get(p,ok).map(tuple2.bind(next)).map(memo.snoc);
+              }
             );
           },
           [].imm()
         ).flat_map(
-          (xs) -> switch(c){
-            case PGroup(list)   : __.accept(PGroup(xs.map(x -> x.snd()).toLinkedList()));
-            case PArray(array)  : __.accept(PArray(xs.map(x -> x.snd())));
-            case PAssoc(map)    : 
-              Upshot.bind_fold(
-                xs,
-                (next:Tup2<Coord,PExpr<V>>,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
-                  return next.fst().field.fold(
-                    fld -> c.access(next.fst()).fold(
-                      ok -> __.accept(tuple2(PLabel(fld),ok)),
+          (xs) -> {
+            trace(xs);
+            final res : Upshot<PExpr<V>,LenseFailure> =  switch(c){
+              case PGroup(list)   : __.accept(PGroup(xs.map(x -> x.snd()).toLinkedList()));
+              case PArray(array)  : __.accept(PArray(xs.map(x -> x.snd())));
+              case PAssoc(map)    : 
+                Upshot.bind_fold(
+                  xs,
+                  (next:Tup2<Coord,PExpr<V>>,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
+                    return next.fst().field.fold(
+                      fld -> c.access(next.fst()).fold(
+                        ok -> __.accept(tuple2(PLabel(fld),next.snd())),
+                        () -> __.reject(f->f.of(E_Lense('no value at ${next.fst()}')))
+                      ).map(memo.snoc),
                       () -> __.reject(f->f.of(E_Lense('no value at ${next.fst()}')))
-                    ).map(memo.snoc),
-                    () -> __.reject(f->f.of(E_Lense('no value at ${next.fst()}')))
-                  );
-                },
-                [].imm()
-              ).map(PAssoc);
-            case PSet(arr)      :__.accept(PArray(xs.map(x -> x.snd())));
-            default             : __.reject(f -> f.of(E_Lense('concrete view $c is a leaf')));
+                    );
+                  },
+                  [].imm()
+                ).map(PAssoc);
+              case PSet(arr)      :__.accept(PArray(xs.map(x -> x.snd())));
+              default             : __.reject(f -> f.of(E_Lense('concrete view $c is a leaf')));
+            }
+            for(x in res){
+              trace(x.toString());
+            }
+            return res;
           }
         );
       case LsSequence(l,r) : 

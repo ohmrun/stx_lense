@@ -1,0 +1,6 @@
+-cp src/main/haxe
+-lib stx_pico
+-lib stx_nano
+-lib stx_log
+--macro include('stx.lense',true)
+--interp

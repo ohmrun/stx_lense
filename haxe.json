@@ -1,0 +1,23 @@
+{
+  "build" : {
+    "-cp"  : "src/main/haxe",
+    "-lib" : ["stx_pico","stx_nano","stx_log","pml","stx_ds"],
+    "unit" : {
+      "--macro" : [
+        "include('stx.lense',true)"
+      ],
+      "interp" : {
+        "--interp" : true
+      }
+    },
+    "test" : {
+      "--resource"  : ["asset/dataI.edn@dataI"],
+      "-lib"        : ["stx_test"],
+      "-cp"         : "src/test/haxe",
+      "-main"       : "stx.lense.Test",
+      "interp" : {
+        "--interp" : true
+      }
+    }
+  } 
+}

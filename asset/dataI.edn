@@ -1,0 +1,23 @@
+{
+  :one {
+    :db/ident :simulation/NarrativeSimulation,
+    :mop/class-precedence-list [:simulation/NarrativeSimulation
+                                :simulation/Simulation :owl/Class :rdfs/Class],
+    :rdf/type :owl/Class,
+    :rdfs/comment
+      "A specific kind of simulation in which the simulation is used to tell a story or describe an event or process.@en",
+    :rdfs/isDefinedBy :simulation/SimulationOntology,
+    :rdfs/label "Narrative Simulation@en",
+    :rdfs/subClassOf :simulation/Simulation
+  }
+  :two {:db/ident                  :simulation/EcosystemSimulation,
+   :mop/class-precedence-list [:simulation/EcosystemSimulation
+                               :simulation/EmblematicSimulation
+                               :simulation/Simulation :owl/Class :rdfs/Class],
+   :rdf/type                  :owl/Class,
+   :rdfs/comment
+   "A specific kind of Emblematic simulation in which the simulacrum is an emblem of an ecosystem.@en",
+   :rdfs/isDefinedBy          :simulation/SimulationOntology,
+   :rdfs/label                "Ecosystem Simulation@en",
+   :rdfs/subClassOf           :simulation/EmblematicSimulation}
+}

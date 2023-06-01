@@ -3,6 +3,7 @@ package stx.lense.term;
 using stx.Pico;
 using stx.Nano;
 using stx.Ds;
+using stx.Show;
 using eu.ohmrun.Pml;
 
 class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
@@ -95,14 +96,14 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
       case LsHoist(k)                 : switch(k){
         case CoField(key,null) : __.accept(PAssoc([tuple2(PLabel(key),a)]));
         case CoField(key,idx)  : __.accept(PAssoc(
-          Iter.range(0,idx-1).lfold(
+          Iter.range(0,idx-2).lfold(
             (next:Int,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
               return memo.cons(tuple2(PExpr.lift(PEmpty),PExpr.lift(PEmpty)));
             },
             [].imm().cons(tuple2(PLabel(key),a))
           )
         ));
-        case CoIndex(idx)      : __.accept(PArray(Iter.range(0,idx-1).toCluster().map(_ -> PEmpty).snoc(a)));
+        case CoIndex(idx)      : __.accept(PArray(Iter.range(0,idx-2).toCluster().map(_ -> PEmpty).snoc(a)));
       }
       case LsPlunge(k)            : this.access(k,a).resolve(f -> f.of(E_Lense('no value at $k on $a')));
       case LsXFork(pc,pa,lhs,rhs) : 
@@ -168,34 +169,60 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
     }
   }
   public function get(self:LExpr<Coord,PExpr<V>>,c:PExpr<V>):Upshot<PExpr<V>,LenseFailure>{
+    trace(__.show(self));
+    trace(__.show(c));
     return switch(self){
       case LsId                       : __.accept(c);
       case LsConstant(value,_default) : __.accept(value); 
       case LsHoist(k)                 : this.access(k,c).resolve(f -> f.of(E_Lense('no value at $k on $c')));
-      case LsPlunge(k)                : __.accept(switch(k){
-        case CoField(key,null) : PAssoc([tuple2(PLabel(key),c)]);
-        case CoField(key,idx)  : PAssoc(
-          Iter.range(0,idx-1).lfold(
-            (next,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
-              return memo.cons(tuple2(PExpr.lift(PEmpty),PExpr.lift(PEmpty)));
-            },
-            [].imm().cons(tuple2(PLabel(key),c))
-          )
-        );
-        case CoIndex(idx)      : PArray(Iter.range(0,idx-1).toCluster().map(_ -> PEmpty).snoc(c));
-      });
+      case LsPlunge(k)                : 
+        switch(k){
+          case CoField(key,null) : __.accept(PAssoc([tuple2(PLabel(key),c)]));
+          case CoField(key,idx)  : 
+            trace('idx');
+            __.accept(PAssoc(
+              Iter.range(0,__.tracer()(idx-2)).lfold(
+                (next,memo:Cluster<Tup2<PExpr<V>,PExpr<V>>>) -> {
+                  trace('ZSsas');
+                  return memo.cons(tuple2(PExpr.lift(PEmpty),PExpr.lift(PEmpty)));
+                },
+                [].imm().cons(tuple2(PLabel(key),c))
+              )
+            ));
+          
+            case CoIndex(idx)      : 
+            __.accept(PArray(Iter.range(0,idx-2).toCluster().map(_ -> PEmpty).snoc(c)));
+        };
       case LsXFork(pc,pa,lhs,rhs) : 
         final cI = search_all(c,pc).resolve(f -> f.of(E_Lense("no value")));
+        for(v in cI){
+          trace(__.show(v));
+        }
         return cI.flat_map(
           cII -> {
-            return get(lhs,cII).zip(get(rhs,cII)).flat_map(
-              __.decouple((l:PExpr<V>,r:PExpr<V>) -> switch([l,r]){
-                case [PGroup(listI),PGroup(listII)]   : __.accept(PGroup(listI.concat(listII)));
-                case [PArray(arrayI),PArray(arrayII)] : __.accept(PArray(arrayI.concat(arrayII)));
-                case [PAssoc(mapI),PAssoc(mapII)]     : __.accept(PAssoc(mapI.concat(mapII)));
-                case [PSet(setI),PSet(setII)]         : __.accept(PSet(setI.concat(setII)));
-                default                               : __.reject(__.fault().of(E_Lense('can\'t merge $l and $r')));
-              }
+            trace('${__.show(lhs)} ${__.show(cII)} ${__.show(rhs)} ${__.show(cII)}');
+            return get(lhs,cII).flat_map(
+              function(x:PExpr<V>){
+                final not_in_c        = c.refine(
+                  (key,val) -> switch(key){
+                    case Left(x)  : pc.all(z -> z != x);
+                    default       : false;
+                  }
+                );
+                return get(rhs,not_in_c).map(__.couple.bind(x));
+              }  
+            ).flat_map(
+              __.decouple(
+                (l:PExpr<V>,r:PExpr<V>) -> {
+                  trace('$l ||| $r');
+                  return switch([l,r]){
+                    case [PGroup(listI),PGroup(listII)]   : __.accept(PGroup(listI.concat(listII)));
+                    case [PArray(arrayI),PArray(arrayII)] : __.accept(PArray(arrayI.concat(arrayII)));
+                    case [PAssoc(mapI),PAssoc(mapII)]     : __.accept(PAssoc(mapI.concat(mapII)));
+                    case [PSet(setI),PSet(setII)]         : __.accept(PSet(setI.concat(setII)));
+                    default                               : __.reject(__.fault().of(E_Lense('can\'t merge $l and $r')));
+                  }
+                }
             ));
           }
         );

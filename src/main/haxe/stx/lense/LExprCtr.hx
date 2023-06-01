@@ -38,6 +38,6 @@ class LExprCtr extends Clazz{
     return Sequence(Filter([n],d),LsHoist(n));
   }
   public function Rename<K,V>(m:K,n:K){
-    return LsXFork([m],[n],LsHoist(m),LsPlunge(n));
+    return LsXFork([m],[n],LsHoist(m).seq(LsPlunge(n)),LsId);
   }
 }

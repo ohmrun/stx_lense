@@ -68,8 +68,18 @@ class LenseTest extends TestCase{
       _.Prune([Coord.make('c')])
     ).seq(
       _.Focus(Coord.make("b"))
+    ).seq(
+      _.Add(Coord.make('teet'),PValue(N(KLInt(4))))
     );
     $type(req);
+    final res   = ctr.get(req,data);
+    for(x in res){
+      trace(x.toString());
+    }
+  }
+  function test_add(){
+    final data  = PGroup([]);
+    final req   = _.Add(Coord.make('teet'),PValue(N(KLInt(4))));
     final res   = ctr.get(req,data);
     for(x in res){
       trace(x.toString());

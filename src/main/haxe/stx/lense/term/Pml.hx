@@ -8,6 +8,7 @@ using eu.ohmrun.Pml;
 
 class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
   static function search_all<V>(x:PExpr<V>,p:Cluster<Coord>){
+    trace('find ${__.show(p)} in ${__.show(x)}');
     return switch(x){
       case PLabel(name)     : None;
       case PApply(name)     : None;
@@ -169,8 +170,9 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
     }
   }
   public function get(self:LExpr<Coord,PExpr<V>>,c:PExpr<V>):Upshot<PExpr<V>,LenseFailure>{
-    trace(__.show(self));
-    trace(__.show(c));
+    final ___self = __.show(self);
+    final __c     = __.show(c);
+    trace('$___self : $__c');
     return switch(self){
       case LsId                       : __.accept(c);
       case LsConstant(value,_default) : __.accept(value); 
@@ -195,12 +197,9 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
         };
       case LsXFork(pc,pa,lhs,rhs) : 
         final cI = search_all(c,pc).resolve(f -> f.of(E_Lense("no value")));
-        for(v in cI){
-          trace(__.show(v));
-        }
         return cI.flat_map(
           cII -> {
-            trace('${__.show(lhs)} ${__.show(cII)} ${__.show(rhs)} ${__.show(cII)}');
+            trace('C = ${__.show(lhs)} ${__.show(cII)} !C ==  ${__.show(rhs)} ${__.show(cII)}');
             return get(lhs,cII).flat_map(
               function(x:PExpr<V>){
                 final not_in_c        = c.refine(
@@ -214,7 +213,7 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
                     default       : false;
                   }
                 );
-                trace(__.show(not_in_c));
+                trace('${__.show(c)} :: ${__.show(not_in_c)}');
                 return get(rhs,not_in_c).map(__.couple.bind(x));
               }  
             ).flat_map(
@@ -226,6 +225,7 @@ class Pml<V> implements LenseApi<Coord,PExpr<V>> extends Clazz {
                     case [PArray(arrayI),PArray(arrayII)] : __.accept(PArray(arrayI.concat(arrayII)));
                     case [PAssoc(mapI),PAssoc(mapII)]     : __.accept(PAssoc(mapI.concat(mapII)));
                     case [PSet(setI),PSet(setII)]         : __.accept(PSet(setI.concat(setII)));
+                    //case [PGroup(listI),PSet()])          : 
                     case [null,x]                         : __.accept(x);
                     case [x,null]                         : __.accept(x);
                     default                               : __.reject(__.fault().of(E_Lense('can\'t merge $l and $r')));

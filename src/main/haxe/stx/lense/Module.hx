@@ -5,7 +5,7 @@ class Module extends Clazz{
   private function get_LExpr():LExprCtr{
     return __.option(this.LExpr).def(() -> this.LExpr = new LExprCtr());
   }
-  public function Pml(){
-    return new stx.lense.term.Pml();
+  public function Pml(inner){
+    return new stx.lense.term.Pml(inner);
   }
 }

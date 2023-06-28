@@ -4,7 +4,7 @@ class LExprCtr extends Clazz{
   /**
    * Use whatever input there is.
    */
-  static public function Id(){
+  public function Id<K,V>():LExpr<K,V>{
     return LsId;
   }
   /**
@@ -88,7 +88,24 @@ class LExprCtr extends Clazz{
   public function Focus<K,V>(n:K,?d:Null<V>):LExpr<K,V>{
     return Sequence(Filter([n],d),LsHoist(n));
   }
-  public function Rename<K,V>(m:K,n:K){
+  public function Rename<K,V>(m:K,n:K):LExpr<K,V>{
     return LsXFork([m],[n],LsHoist(m).seq(LsPlunge(n)),LsId);
   }
+  public function Copy<K,V>(m:K,n:K):LExpr<K,V>{
+    return LsCopy(m,n);
+  }
+  public function Merge<K,V>(m:K,n:K):LExpr<K,V>{
+    return LsMerge(m,n);
+  }
+  public function Spray<K,V>(zero_c:V,zero_k:K):LExpr<K,V>{
+    return CCond(zero_c,Id(),Plunge(zero_k));
+  }
+  public function CCond<K,V>(ccond:V,l:LExpr<K,V>,r:LExpr<K,V>){
+    return LsCCond(ccond,l,r);
+  }
+  // public function Bisect<K,V>(head:LExpr<K,V>,tail:LExpr<K,V>){
+  //   return LsBisect(head,tail);
+  // }
+  //public function WMap<K,V>(f:K->LExpr,K,V>)
+  //HeadTail(head:LExpr<K,V>,tail:LExpr<K,V>);
 }

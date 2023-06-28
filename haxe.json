@@ -1,5 +1,6 @@
 {
   "build" : {
+    "-D"    : ["no-deprecation-warnings"],
     "-cp"  : "src/main/haxe",
     "-lib" : ["stx_pico","stx_nano","stx_log","pml","stx_ds","stx_show"],
     "unit" : {

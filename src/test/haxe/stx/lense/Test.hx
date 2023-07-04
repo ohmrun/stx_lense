@@ -8,11 +8,20 @@ using stx.Show;
 using stx.Assert;
 using eu.ohmrun.Pml;
 
+import stx.lense.test.*;
+
 class Test extends TestCase{
   static public function main(){
     __.test().run(
       [
-        new LenseTest()
+        //new ConstantTest(),
+        //new LenseTest(),
+        //new HoistTest(),
+        //new SeqTest(),
+        //new CopyTest(),
+        //new OpsTest(),
+        //new MapTest(),
+        new MergeTest()
       ],[]
     );
   }

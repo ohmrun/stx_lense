@@ -210,23 +210,17 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
             );
         }));
 			  case LsCCond(cond,l,r) :
-			      V.eq().comply(c,cond).is_ok().if_else(
-			        () -> put(l,a,c),
-			        () -> put(r,a,c)
-			      );
+					member(cond,c).if_else(
+						() -> put(l,a,c),
+						() -> put(r,a,c)
+					);
 			  case LsACond(cond,acond,l,r) :
-			    a.any_layer(p -> V.eq().comply(acond,p).is_ok()).zip(
-			      c.any_layer(p -> V.eq().comply(cond,p).is_ok())
-			    ).errate(E_Lense_Pml).flat_map(
-			      __.decouple(
-			        function (x:Bool,y:Bool):Upshot<PExpr<V>,LenseFailure> {(return switch([x,y]){
-			          case [true,true]    : put(l,a,c);
-			          case [true,false]   : put(l,a,PEmpty);
-			          case [false,false]  : put(r,a,c);
-			          case [false,true]   : put(r,a,PEmpty);
-			        });}
-			      )
-			    );
+					switch([member(acond,a),member(cond,c)]){
+						case [true,true]    : put(l,a,c);
+						case [true,false]   : put(l,a,PEmpty);
+						case [false,false]  : put(r,a,c);
+						case [false,true]   : put(r,a,PEmpty);
+					}
 		}
 		trace('$self $result');
 		return result;
@@ -413,7 +407,7 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 				trace(not_in_c);
 				not_in_c;
 		  case LsCCond(cond,l,r) :
-		    V.eq().comply(c,cond).is_ok().if_else(
+		    member(cond,c).if_else(
 		      () -> {
 		        trace("true");
 		        return get(l,c);
@@ -424,7 +418,7 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 		      }
 		    );
 		  case LsACond(cond,acond,l,r) :
-		    V.eq().comply(c,cond).is_ok().if_else(
+		    member(cond,c).if_else(
 		      () -> get(l,c),
 		      () -> get(r,c)
 		    );
@@ -506,7 +500,7 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 				var keys 	: RedBlackSet<PExpr<V>> = RedBlackSet.make(this.V);
 				
 				for(k in mapI){
-					$type(keys.put);
+					//$type(keys.put);
 					keys = keys.put(k.fst());
 				}
 				for(k in mapII){
@@ -538,6 +532,70 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 			case [PApply(l),PApply(r)] if (V.is_greater_or_equal(PApply(r),PApply(l))) : __.accept(PApply(r));
 			default:
 				__.reject(__.fault().of(stx.fail.PmlFailure.PmlFailureSum.E_Pml_CannotMix(lhs, rhs))).errate(E_Lense_Pml);
+		}
+	}
+	public function member(self:PExpr<V>,that:PExpr<V>){
+		return switch([self,that]){
+			case [PAssoc(mapI),PAssoc(mapII)] : mapII.any(
+				__.detuple(
+					(l,r) -> {
+						final has_key = mapI.search(
+							__.detuple(
+								(x,y) -> {
+									return this.V.eq().comply(l,x).is_ok();
+								}
+							)
+						);
+						return has_key.fold(
+							(tp) 	-> r == null ? true : this.V.eq().comply(r,tp.snd()).is_ok(),
+							() 		-> false			
+						);
+					}
+				)
+			);
+			case [PAssoc(map),PGroup(Cons(l,Cons(r,Nil)))] : 
+					map.search(
+						__.detuple(
+							(lI,rI) -> this.V.eq().comply(lI,l).is_ok()
+						)
+					).fold(
+						tp -> r == null ? true : this.V.eq().comply(tp.snd(),r).is_ok(),
+						() -> false
+					);
+			case [PArray(arrI),PArray(arrII)] : 
+					arrII.any(
+						(x) -> arrI.any(
+							(y) -> this.V.eq().comply(x,y).is_ok()
+						)
+					);
+			case [PArray(arr),PGroup(grp)] : 
+				(grp:Iter<PExpr<V>>).any(
+					(x) -> arr.any(
+						(y) -> this.V.eq().comply(x,y).is_ok()
+					)
+				);
+			case [PArray(arr),PAssoc(_)]  		: false;
+			case [PArray(arr),node] 					: arr.any(
+				x -> this.V.eq().comply(node,x).is_ok()
+			);
+			case [PGroup(grpI),PGroup(grpII)] : 
+				(grpII:Iter<PExpr<V>>).any(
+					(x) -> (grpI:Iter<PExpr<V>>).any(
+						(y) -> this.V.eq().comply(x,y).is_ok()
+					)
+				);
+			case [PGroup(grp),PArray(arr)] : 
+				(grp:Iter<PExpr<V>>).any(
+					(x) -> arr.any(
+						(y) -> this.V.eq().comply(x,y).is_ok()
+					)
+				);
+			case [PGroup(arr),PAssoc(_)]  		: false;
+			case [PGroup(grp),node] 					: 
+				(grp:Iter<PExpr<V>>).any(
+					x -> this.V.eq().comply(node,x).is_ok()
+				); 
+			case [x,y]  											: this.V.eq().comply(x,y).is_ok();
 		}
 	}
 }

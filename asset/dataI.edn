@@ -10,7 +10,8 @@
     :rdfs/label "Narrative Simulation@en",
     :rdfs/subClassOf :simulation/Simulation
   }
-  :two {:db/ident                  :simulation/EcosystemSimulation,
+  :two {
+   :db/ident                  :simulation/EcosystemSimulation,
    :mop/class-precedence-list [:simulation/EcosystemSimulation
                                :simulation/EmblematicSimulation
                                :simulation/Simulation :owl/Class :rdfs/Class],

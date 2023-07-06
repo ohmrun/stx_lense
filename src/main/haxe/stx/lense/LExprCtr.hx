@@ -103,6 +103,9 @@ class LExprCtr extends Clazz{
   public function CCond<K,V>(ccond:V,l:LExpr<K,V>,r:LExpr<K,V>){
     return LsCCond(ccond,l,r);
   }
+  public function ACond<K,V>(ccond:V,acond:V,l:LExpr<K,V>,r:LExpr<K,V>){
+    return LsACond(ccond,acond,l,r);
+  }
   // public function Bisect<K,V>(head:LExpr<K,V>,tail:LExpr<K,V>){
   //   return LsBisect(head,tail);
   // }

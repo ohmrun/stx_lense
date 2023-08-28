@@ -249,8 +249,10 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 		            [].imm().cons(tuple2(PLabel(key),c))
 		          )
 		        )));
-		        case CoIndex(idx)      :
-		        __.accept(PArray([c]));
+						case CoIndex(null)      :
+						__.accept(PGroup(Cons(PEmpty,Cons(c,Nil))));//TODO this causes issues
+						case CoIndex(idx)      :
+							__.accept(PArray(Iter.range(0,idx).toCluster().map(_ -> PEmpty).snoc(c)));//TODO this causes issues
 		    };
 		  case LsXFork(pc,pa,lhs,rhs) : 
 				final in_c = c.ifilter(
@@ -603,6 +605,7 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 private class PmlLift {
 	static public function concat<K, V>(self:Pml<V>, lhs:PExpr<V>, rhs:PExpr<V>) {
 		final length = lhs.labels().length;
+		trace(length);
 		// __.reject(f -> f.of(E_Parse('lhs is not a chain')));
 		final signature = lhs.signature();
 		final chain = switch (signature) {
@@ -614,16 +617,30 @@ private class PmlLift {
 				//Some(Right(Iter.range(0, length).map(_ -> tuple2(PEmpty, PEmpty)).toCluster()));
 				Some(Right([].imm()));
 		}
-		trace('$chain $rhs');
+		trace('$chain $signature $rhs');
 		final rhsI = switch ([signature, rhs]) {
 			case [PSigCollect(_, PCArray), PArray(arr)]:
 				Some(PArray(chain.flat_map(x -> x.left()).fudge().concat(arr)));
 			case [PSigCollect(_, PCSet), PSet(arr)]:
 				Some(PSet(chain.flat_map(x -> x.left()).fudge().concat(arr)));
+			case [PSigCollect(_, PCGroup), PArray(arr)]:
+				Some(PGroup(LinkedList.fromCluster(chain.flat_map(x -> x.left()).fudge()).concat(arr)));
 			case [PSigCollect(_, PCGroup), PGroup(arr)]:
 				Some(PGroup(LinkedList.fromCluster(chain.flat_map(x -> x.left()).fudge()).concat(arr)));
 			case [PSigCollate(_, _), PAssoc(cs)]:
 				Some(PAssoc(chain.flat_map(x -> x.right()).fudge().concat(cs)));
+			case [PSigCollate(_, _), 
+				PGroup(
+					Cons(
+						PEmpty,
+						Cons(
+							PGroup(Cons(x,Cons(y,Nil))),
+							Nil
+						)
+					)
+				)
+			]:
+				Some(PAssoc(chain.flat_map(x -> x.right()).fudge().snoc(tuple2(x,y))));//TODO Not sure if there is any aliasing in behaviour
 			case [PSigOutline(_), PAssoc(cs)]:
 				Some(PAssoc(chain.flat_map(x -> x.right()).fudge().concat(cs)));
 			case [PSigBattery(_, PCArray), PArray(arr)]:
@@ -632,7 +649,9 @@ private class PmlLift {
 				Some(PSet(chain.flat_map(x -> x.left()).fudge().concat(arr)));
 			case [PSigBattery(_, PCGroup), PGroup(arr)]:
 				Some(PGroup(LinkedList.fromCluster(chain.flat_map(x -> x.left()).fudge()).concat(arr)));
-			default: None;
+			default: 
+				trace("bollocks");
+				None;
 		}
 		trace(lhs.toString());
 		trace(rhsI.toString());

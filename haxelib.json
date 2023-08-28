@@ -1,0 +1,25 @@
+{
+    "name": "stx_lense",
+    "license": "MIT",
+    "tags": [
+        "cross",
+        "functional"
+    ],
+    "description": "Stuff you can't do without, but might already have.",
+    "contributors": [
+        "0b1kn00b"
+    ],
+    "releasenote": "",
+    "version": "0.0.0",
+    "url": "https://github.com/ohmrun/stx_lense",
+    "dependencies": {
+        "stx_pico" : "",
+        "stx_nano" : "",
+        "stx_log"  : "",
+        "stx_ds"   : "",
+        "stx_show" : "",
+        "glot"     : "",
+        "pml"      : ""
+    },
+    "classPath": "src/main/haxe"
+}

@@ -3,7 +3,7 @@
 Functional lenses require macros or type constructors so if you drop down to a more homogenous object tree description you can implement them there.
 
 
-This library is based on the paper [A Language for Bi-Directional Tree Transformations](https://www.cis.upenn.edu/~bcpierce/papers/lenses-toplas-final.pdf) and currently implements the following lenses  over [pml](https://github.com/ohmrun/pml):
+This library is based on the paper [A Language for Bi-Directional Tree Transformations](https://www.cis.upenn.edu/~bcpierce/papers/lenses-toplas-final.pdf) and currently implements the following lenses over [pml](https://github.com/ohmrun/pml):
 
 
 ```haxe

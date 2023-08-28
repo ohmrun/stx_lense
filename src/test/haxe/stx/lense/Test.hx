@@ -21,7 +21,9 @@ class Test extends TestCase{
         //new CopyTest(),
         //new OpsTest(),
         //new MapTest(),
-        new MergeTest()
+        //new MergeTest()
+        //new MemberTest(),
+        new AddTest()
       ],[]
     );
   }

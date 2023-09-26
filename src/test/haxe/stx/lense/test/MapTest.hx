@@ -7,8 +7,8 @@ class MapTest extends TestCase{
   public function test(){
     final c     = __.pml().parser()("{:a 1 :c 2}".reader()).fudge().head().fudge();
     final a     = __.pml().parser()("{:c 5}".reader()).fudge().head().fudge();
-    final p     = _.Add(Coord.make("c"),PValue(N(KLInt(3))));
-    // final l  = _.Constant(PValue(N(KLInt(99))),null).seq(LsPlunge(Coord.make("z")));
+    final p     = _.Add(Coord.make("c"),PValue(N(NInt(3))));
+    // final l  = _.Constant(PValue(N(NInt(99))),null).seq(LsPlunge(Coord.make("z")));
     // final g  = ctr.get(l,PEmpty);
     // trace(g);
     final x = ctr.get(p,c).value();

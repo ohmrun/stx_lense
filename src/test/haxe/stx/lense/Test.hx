@@ -77,14 +77,14 @@ class LenseTest extends TestCase{
   // function test_map(){
   //   final data = pI("{ :a 1 :c 1 }").flat_map(x -> switch(x){ case PGroup(Cons(x,_)) : Some(x); default : None; }).defv(PEmpty);
   //   final req  = 
-  //   _.Rename(Coord.make('a'),Coord.make('b')).seq(_.Map(_.Constant(PValue(N(KLInt(3)))))).seq(
+  //   _.Rename(Coord.make('a'),Coord.make('b')).seq(_.Map(_.Constant(PValue(N(NInt(3)))))).seq(
   //     _.Prune([Coord.make('c')])
   //   ).seq(
   //     _.Focus(Coord.make("b"))
   //   ).seq(
   //     _.Plunge(Coord.make("b"))
   //   ).seq(
-  //     _.Add(Coord.make('teet'),PValue(N(KLInt(4))))
+  //     _.Add(Coord.make('teet'),PValue(N(NInt(4))))
   //   );
   //   $type(req);
   //   final res   = ctr.get(req,data);
@@ -136,7 +136,7 @@ class LenseTest extends TestCase{
   }
   // function test_add(){
   //   final data  = PAssoc([tuple2(PLabel("first"),PValue(Str("hej")))]);
-  //   final req   = _.Add(Coord.make('teet'),PValue(N(KLInt(4))));
+  //   final req   = _.Add(Coord.make('teet'),PValue(N(NInt(4))));
   //   final res   = ctr.get(req,data);
   //   for(x in res){
   //     trace(x.toString());

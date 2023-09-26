@@ -8,7 +8,7 @@ class Reader{
   }
   static function k_of(e:PExpr<Atom>){
     return switch(e){
-      case PGroup(Cons(l,Cons(PValue(N(KLInt(n))),Nil))) : 
+      case PGroup(Cons(l,Cons(PValue(N(NInt(n))),Nil))) : 
         switch(l){
           case PValue(Str(s)) | PLabel(s) : __.accept(Coord.make(s,n));
           default                         : __.reject(error('coord',e));

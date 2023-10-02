@@ -249,7 +249,7 @@ class Pml<V> implements LenseApi<Coord, PExpr<V>> {
 		            [].imm().cons(tuple2(PLabel(key),c))
 		          )
 		        )));
-						case CoIndex(null)      :
+						case CoIndex(-1)      :
 						__.accept(PGroup(Cons(PEmpty,Cons(c,Nil))));//TODO this causes issues
 						case CoIndex(idx)      :
 							__.accept(PArray(Iter.range(0,idx).toCluster().map(_ -> PEmpty).snoc(c)));//TODO this causes issues
